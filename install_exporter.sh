@@ -79,7 +79,7 @@ initOS
 verifySupported
 inputFQDN
 installNodeExporter
-if [ "$HAS_NVGPU" == "true"]; then
+if [ "$HAS_NVGPU" == "true" ]; then
   installGpuExporter
 fi
 installPushProxClient
