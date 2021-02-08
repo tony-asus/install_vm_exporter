@@ -78,7 +78,6 @@ initArch
 initOS
 verifySupported
 inputFQDN
-exit 0
 installNodeExporter
 if [ "$HAS_NVGPU" == "true"]; then
   installGpuExporter
