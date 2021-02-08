@@ -74,6 +74,10 @@ installPushProxClient() {
   sudo docker run -d --net=host --entrypoint='/app/pushprox-client' prom/pushprox:v0.1.0 --fqdn="$VERTIAL_NAME.$VM_NAME" --proxy-url="$PROXY_URL" || exit 1
 }
 
+addFQDNToHosts() {
+  echo "127.0.0.1 $VERTICAL_NAME.$VM_NAME" | sudo tee -a /etc/hosts
+}
+
 initArch
 initOS
 verifySupported
@@ -83,3 +87,4 @@ if [ "$HAS_NVGPU" == "true" ]; then
   installGpuExporter
 fi
 installPushProxClient
+addFQDNToHosts
