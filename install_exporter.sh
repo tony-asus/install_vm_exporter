@@ -3,7 +3,7 @@
 HAS_DOCKER="$(type "docker" &> /dev/null && echo true || echo false)"
 HAS_NVGPU="$(type "nvidia-smi" &> /dev/null && echo true || echo false)"
 PROXY_URL="https://aics-api.asus.com/pushproxy/"
-VERTIAL_NAME=""
+VERTICAL_NAME=""
 VM_NAME=""
 
 # initArch discovers the architecture for this system.
@@ -48,15 +48,15 @@ verifySupported() {
 }
 
 inputFQDN() {
-  while [ -z $VERTIAL_NAME ]
+  while [ -z $VERTICAL_NAME ]
   do
-    read -p "Input vertical name, ex: aics-safety: " VERTIAL_NAME
+    read -p "Input vertical name, ex: aics-safety: " VERTICAL_NAME
   done
   while [ -z $VM_NAME ]
   do
     read -p "Input vm name, ex: model-training-vm: " VM_NAME
   done
-  echo "FQDN name = $VERTIAL_NAME.$VM_NAME"
+  echo "FQDN name = $VERTICAL_NAME.$VM_NAME"
 }
 
 installNodeExporter() {
@@ -66,12 +66,16 @@ installNodeExporter() {
 
 installGpuExporter() {
   echo "Install dcgm exporter..."
-  sudo docker run -d --restart always --gpus all -p 9400:9400 nvidia/dcgm-exporter:2.0.13-2.1.2-"$OS$VERSION" || exit 1
+  if [[ $VERSION == "16.04" ]]; then
+    sudo docker run -d --restart always --gpus all -p 9400:9400 nvidia/dcgm-exporter || exit 1
+  else
+    sudo docker run -d --restart always --gpus all -p 9400:9400 nvidia/dcgm-exporter:2.0.13-2.1.2-"$OS$VERSION" || exit 1
+  fi
 }
 
 installPushProxClient() {
   echo "Install pushprox client..."
-  sudo docker run -d --net=host --entrypoint='/app/pushprox-client' prom/pushprox:v0.1.0 --fqdn="$VERTIAL_NAME.$VM_NAME" --proxy-url="$PROXY_URL" || exit 1
+  sudo docker run -d --net=host --entrypoint='/app/pushprox-client' prom/pushprox:v0.1.0 --fqdn="$VERTICAL_NAME.$VM_NAME" --proxy-url="$PROXY_URL" || exit 1
 }
 
 addFQDNToHosts() {
