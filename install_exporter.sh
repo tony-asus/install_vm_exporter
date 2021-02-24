@@ -75,7 +75,7 @@ installGpuExporter() {
 
 installPushProxClient() {
   echo "Install pushprox client..."
-  sudo docker run -d --net=host --entrypoint='/app/pushprox-client' prom/pushprox:master --fqdn="$VERTICAL_NAME.$VM_NAME" --proxy-url="$PROXY_URL" || exit 1
+  sudo docker run -d --restart always --net=host --entrypoint='/app/pushprox-client' prom/pushprox:master --fqdn="$VERTICAL_NAME.$VM_NAME" --proxy-url="$PROXY_URL" || exit 1
 }
 
 addFQDNToHosts() {
