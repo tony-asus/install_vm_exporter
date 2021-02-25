@@ -86,9 +86,9 @@ initArch
 initOS
 verifySupported
 inputFQDN
+addFQDNToHosts
 installNodeExporter
 if [ "$HAS_NVGPU" == "true" ]; then
   installGpuExporter
 fi
 installPushProxClient
-addFQDNToHosts
