@@ -61,25 +61,38 @@ inputFQDN() {
 
 installNodeExporter() {
   echo "Install node exporter..."
-  sudo docker run -d --restart always --net="host" --pid="host" quay.io/prometheus/node-exporter:latest || exit 1
+  sudo docker run -d --name node-exporter --restart always --net="host" --pid="host" quay.io/prometheus/node-exporter:latest || exit 1
 }
 
 installGpuExporter() {
   echo "Install dcgm exporter..."
   if [[ $VERSION == "16.04" ]]; then
-    sudo docker run -d --restart always --gpus all -p 9400:9400 nvidia/dcgm-exporter || exit 1
+    sudo docker run -d --name dcgm-exporter --restart always --gpus all -p 9400:9400 nvidia/dcgm-exporter || exit 1
   else
-    sudo docker run -d --restart always --gpus all -p 9400:9400 nvidia/dcgm-exporter:2.0.13-2.1.2-"$OS$VERSION" || exit 1
+    sudo docker run -d --name dcgm-exporter --restart always --gpus all -p 9400:9400 nvidia/dcgm-exporter:2.0.13-2.1.2-"$OS$VERSION" || exit 1
   fi
 }
 
 installPushProxClient() {
   echo "Install pushprox client..."
-  sudo docker run -d --restart always --net=host --entrypoint='/app/pushprox-client' prom/pushprox:master --fqdn="$VERTICAL_NAME.$VM_NAME" --proxy-url="$PROXY_URL" || exit 1
+  sudo docker run -d --name pushprox --restart always --net=host --entrypoint='/app/pushprox-client' prom/pushprox:master --fqdn="$VERTICAL_NAME.$VM_NAME" --proxy-url="$PROXY_URL" || exit 1
 }
 
 addFQDNToHosts() {
   echo "127.0.0.1 $VERTICAL_NAME.$VM_NAME" | sudo tee -a /etc/hosts
+}
+
+cleanupContainers() {
+  echo "Clean up containers..."
+  cid_pushprox=$(sudo docker ps -f name=pushprox -q)
+  cid_dcgm=$(sudo docker ps -f name=dcgm-exporter -q)
+  cid_node=$(sudo docker ps -f name=node-exporter -q)
+  for cid in $cid_pushprox $cid_dcgm $cid_node
+  do
+    if [ ! -z $cid ]; then
+      sudo docker rm -f $cid || true
+    fi
+  done
 }
 
 initArch
@@ -87,6 +100,7 @@ initOS
 verifySupported
 inputFQDN
 addFQDNToHosts
+cleanupContainers
 installNodeExporter
 if [ "$HAS_NVGPU" == "true" ]; then
   installGpuExporter
